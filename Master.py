@@ -1,14 +1,21 @@
+# example based on code by Ahmed Kachkach
+# https://cloud.google.com/blog/products/gcp/problem-solving-with-ml-automatic-document-classification
+
 import os
 import pandas as pd
 from io import StringIO
 import numpy as np
 
 #%%
+# raw data available here: http://mlg.ucd.ie/datasets/bbc.html
+# click ">> Download raw text files" below "Dataset: BBC"
+
+# this loop imports the raw data
 df = pd.DataFrame()
 folders = ["business", "entertainment", "politics", "sport", "tech"]
 for x in folders:
     files = []
-    path = r"C:\Users\hburdon\Documents\Python Scripts\ml project\data\bbc raw\bbc\{}".format(x)
+    path = r"data\bbc raw\bbc\{}".format(x)
     for file in os.listdir(path):
         with open(os.path.join(path, file)) as f:
             read_data = f.read()
@@ -26,10 +33,9 @@ category_id_df = df[['category', 'category_id']].drop_duplicates().sort_values('
 category_to_id = dict(category_id_df.values)
 id_to_category = dict(category_id_df[['category_id', 'category']].values)
 
+# separating out the headline (the first line) from the article content (below the first line)
 df['title'] = df['article'].str.split('\n\n').str.get(0)
 df['content'] = df['article'].str.split('\n\n').str.get(1)
-
-df.groupby('category').filename.count().plot.bar(ylim=0)
 
 # count the document types
 my_tab = pd.crosstab(index=df["category"], columns="count")
@@ -37,6 +43,7 @@ my_tab = pd.crosstab(index=df["category"], columns="count")
 
 
 df.sample(5, random_state=0)
+
 #%%
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -47,7 +54,7 @@ labels = df.category_id
 features.shape
 
 #%%
-
+# using the chi squared test to see the terms most correlated with the categories. The results look reasonable
 from sklearn.feature_selection import chi2
 
 N = 3
